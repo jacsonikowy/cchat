@@ -38,7 +38,7 @@ int main() {
     return -1;
   }
 
-  char message[MAX_MESSAGE_LENGTH]
+  char message[MAX_MESSAGE_LENGTH];
   init_chat(message);
 
   send(client_socket, username, sizeof username, 0);

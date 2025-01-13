@@ -3,6 +3,7 @@
 
 #define WINDOW_WIDTH 34
 #define WINDOW_HEIGHT 7
+#define CHAT_PADDING 5
 
 void init_username_window(char* buffer) {
   initscr();
@@ -39,7 +40,6 @@ void init_username_window(char* buffer) {
 
 
   werase(win);
-
   delwin(win);
   endwin();
 }
@@ -80,4 +80,57 @@ void init_server_connect_window(char* server_ip) {
   werase(win);
   delwin(win);
   endwin();
+}
+
+void init_chat(char* message) {
+  clear();
+  refresh();
+
+  initscr();
+  noecho();
+  cbreak();
+
+  int max_y, max_x;
+
+  getmaxyx(stdscr, max_y, max_y);
+
+  /*
+  start_color();
+  init_pair(1, COLOR_WHITE, COLOR_BLACK);
+  init_pair(2, COLOR_RED, COLOR_BLACK);
+  */
+
+  int chatHeight, chatWidth, chatStartY, chatStartX;
+  chatHeight = LINES - 6;
+  chatWidth = COLS - 4;
+  chatStartY = 1;
+  chatStartX = 2;
+
+  int inputHeight, inputWidth, inputStartY, inputStartX;
+  inputHeight = 5;
+  inputWidth = COLS - 4;
+  inputStartY = chatHeight + 1;
+  inputStartX = 2;
+
+  WINDOW *chat = newwin(chatHeight, chatWidth, chatStartY, chatStartX);
+  // WINDOW *online = newwin(height, width, starty, startx);
+  WINDOW *input = newwin(inputHeight, inputWidth, inputStartY, inputStartX);
+
+  box(chat, 0, 0);
+  box(input, 0, 0);
+
+  mvwprintw(chat, 0, 2, "CHAT");
+  mvwprintw(input, 0, 2, "INPUT");
+
+  scrollok(chat, TRUE);
+
+  wrefresh(chat);
+  wrefresh(input);
+
+  getch();
+
+  delwin(chat);
+  delwin(input);
+  endwin();
+  
 }

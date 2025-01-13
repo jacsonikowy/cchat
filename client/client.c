@@ -10,6 +10,7 @@
 #include "ui.h"
 
 #define MAX_USERNAME_LENGTH 50
+#define MAX_MESSAGE_LENGTH 250
 
 int main() {
 
@@ -36,6 +37,9 @@ int main() {
     perror("Couldn't connect to server");
     return -1;
   }
+
+  char message[MAX_MESSAGE_LENGTH]
+  init_chat(message);
 
   send(client_socket, username, sizeof username, 0);
 

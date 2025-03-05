@@ -5,6 +5,11 @@
 #define WINDOW_HEIGHT 7
 #define CHAT_PADDING 5
 
+#define MAX_MESSAGES_NUMBER 250
+#define MAX_MESSAGE_LENGTH 250
+WINDOW *chat; 
+WINDOW *input; 
+
 void init_username_window(char* buffer) {
   initscr();
   noecho();
@@ -112,9 +117,9 @@ void init_chat(char* message) {
   inputStartY = chatHeight + 1;
   inputStartX = 2;
 
-  WINDOW *chat = newwin(chatHeight, chatWidth, chatStartY, chatStartX);
+  chat = newwin(chatHeight, chatWidth, chatStartY, chatStartX);
   // WINDOW *online = newwin(height, width, starty, startx);
-  WINDOW *input = newwin(inputHeight, inputWidth, inputStartY, inputStartX);
+  input = newwin(inputHeight, inputWidth, inputStartY, inputStartX);
 
   box(chat, 0, 0);
   box(input, 0, 0);
@@ -129,8 +134,57 @@ void init_chat(char* message) {
 
   getch();
 
+  /*
   delwin(chat);
   delwin(input);
   endwin();
-  
+*/
 }
+
+void refresh_chat_windows() {
+  wrefresh(chat);
+  wrefresh(input);
+}
+
+void show_chat_message(char buffers[][250], int buffers_length) {
+  wclear(chat);
+  box(chat, 0, 0);
+  int chatHeight = LINES - 6;
+  int line = chatHeight - 1; 
+  for (int i=0; i < buffers_length; i++) {
+    mvwprintw(chat, 0, 2, "CHAT");
+    mvwprintw(chat, line, 1, "%s", buffers[i]);
+    wrefresh(chat);
+    line--;
+  }
+  wrefresh(chat);
+}
+
+void handle_input(char* buffer, int* client_socket) {
+  int input_pos = 0;
+
+  while (1) {
+    box(input, 0, 0);
+
+    mvwprintw(input, 0, 2, "INPUT");
+    wrefresh(input);
+
+    int ch = wgetch(input);
+    if (ch == '\n') {
+      input_pos = 0;
+      wclear(input);
+      break;
+    } else if (ch == 127 || ch == KEY_BACKSPACE) {
+      if (input_pos > 0) {
+        buffer[--input_pos] = '\0';
+        wclear(input);
+      }
+    } else if (input_pos < MAX_MESSAGE_LENGTH - 1) {
+      buffer[input_pos++] = ch; 
+    }
+
+    mvwprintw(input, 1, 3, "%s", buffer);
+    wrefresh(input);
+  }
+}
+  

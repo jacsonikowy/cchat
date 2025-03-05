@@ -7,10 +7,36 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <pthread.h>
+
 #include "ui.h"
 
 #define MAX_USERNAME_LENGTH 50
 #define MAX_MESSAGE_LENGTH 250
+#define MAX_MESSAGE_NUMBER 250
+
+char messages[MAX_MESSAGE_NUMBER][MAX_MESSAGE_LENGTH];
+int messages_length;
+
+void* receive_messages(void* arg) {
+  int client_socket = (int)arg;
+  char buffer[MAX_MESSAGE_LENGTH + MAX_USERNAME_LENGTH];
+
+  while (1) {
+    read(client_socket, buffer, sizeof buffer);
+
+    for (int i=0; i<MAX_MESSAGE_NUMBER; i++) {
+      if (messages[i] == NULL) {
+        strncpy(messages[i], buffer, sizeof buffer);
+        messages_length++;
+        break;
+      } 
+    }
+
+    show_chat_message(messages, messages_length);
+    memset(buffer, 0, sizeof buffer);
+  }
+}
 
 int main() {
 
@@ -38,15 +64,20 @@ int main() {
     return -1;
   }
 
+  send(client_socket, username, sizeof username, 0);
+
   char message[MAX_MESSAGE_LENGTH];
   init_chat(message);
 
-  send(client_socket, username, sizeof username, 0);
+  while (1) {
+    pthread_t receive_messages_thread;
+    pthread_create(&receive_messages_thread, NULL, receive_messages, (void*)client_socket);
 
-  char buffer[150];
-  read(client_socket, buffer, sizeof buffer);
-  printf("%s", buffer);
-  memset(buffer, 0, sizeof buffer);
+    char buffer[MAX_MESSAGE_LENGTH] = {0};
+    handle_input(buffer, &client_socket);
+    send(client_socket, buffer, sizeof buffer, 0);
+    memset(buffer, 0, sizeof buffer);
+  }
 
   close(client_socket);
 
